@@ -10,10 +10,9 @@ from sqlalchemy import text
 from .comun.bloqueo import BloqueoEjecucion
 from .extraccion.preparar import extraer_fuentes
 from .transformacion.contexto import ContextoTransformacion
-from .transformacion.dimensiones.preparar import preparar_dimensiones
-from .transformacion.ventas import preparar_ventas
-from .transformacion.devoluciones import preparar_devoluciones
-from .transformacion.conciliacion import armar_resultado
+from .silver.limpieza import preparar_tablas_silver
+from .silver.persistencia import guardar_silver, leer_silver
+from .gold.construccion import construir_dimensiones_gold, construir_hechos_gold
 from .carga.gold.conexion import crear_motor
 from .carga.gold.modelo import crear_modelo
 from .carga.gold.dimensiones import cargar_dimensiones
@@ -22,12 +21,13 @@ from .carga.gold.auditoria import cargar_auditoria, registrar_ejecucion
 from .carga.gold.validaciones import validar_carga
 from .carga.gold.metricas import consultar_resultados
 from .comun.utilidades import ahora, huella_archivo
-from .carga.silver import guardar_silver, leer_silver
 
 RAIZ = Path(__file__).resolve().parents[1]
 ETAPAS = (
-    'EXTRACCION', 'DIMENSIONES', 'VENTAS', 'DEVOLUCIONES', 'CONCILIACION',
-    'GUARDAR_SILVER', 'LEER_SILVER', 'CONEXION', 'MODELO', 'CARGA_DIMENSIONES', 'CARGA_HECHOS', 'VALIDACION', 'PUBLICACION',
+    'EXTRACCION_BRONZE', 'LIMPIEZA_SILVER', 'CONCILIACION_SILVER',
+    'GUARDAR_SILVER', 'LEER_SILVER', 'DIMENSIONES_GOLD', 'HECHOS_GOLD',
+    'CONCILIACION_GOLD', 'CONEXION', 'MODELO', 'CARGA_DIMENSIONES',
+    'CARGA_HECHOS', 'VALIDACION', 'PUBLICACION',
 )
 
 
@@ -115,49 +115,51 @@ class SesionETL:
             self.guardar_resumen()
 
     def extraer(self):
-        """E: lee los siete CSV y comprueba columnas, conteos y huellas."""
-        with self.paso('EXTRACCION'):
+        """Bronze: lee los siete CSV y comprueba columnas, conteos y huellas."""
+        with self.paso('EXTRACCION_BRONZE'):
             self.fuentes, self.manifiesto, metadatos = extraer_fuentes(self.entrada, self.id_ejecucion)
             self.resumen['semilla'] = metadatos['semilla']
             self.resumen['datos_sinteticos'] = metadatos.get('datos_sinteticos', True)
             self.resumen['fuentes'] = self.manifiesto.drop(columns=['id_ejecucion']).to_dict('records')
         return self.fuentes
 
-    def transformar_dimensiones(self):
-        """T: normaliza maestros y construye dimensiones SCD 1, 2 y 3."""
-        with self.paso('DIMENSIONES'):
+    def limpiar_silver(self):
+        """Silver: limpia siete entidades y conserva únicamente claves de negocio."""
+        with self.paso('LIMPIEZA_SILVER'):
             self.contexto = ContextoTransformacion(self.fuentes, self.id_ejecucion)
-            self.sucursales, self.productos, self.clientes, self.cambios = preparar_dimensiones(self.contexto)
-        return self.sucursales, self.productos, self.clientes
+            self.tablas_silver = preparar_tablas_silver(self.contexto)
+        return self.tablas_silver
 
-    def transformar_ventas(self):
-        """T: valida líneas y resuelve claves y versión histórica del cliente."""
-        with self.paso('VENTAS'):
-            self.ventas = preparar_ventas(self.contexto, self.sucursales, self.productos, self.clientes)
-        return self.ventas
-
-    def transformar_devoluciones(self):
-        """T: valida cada devolución contra las unidades y el importe pagados."""
-        with self.paso('DEVOLUCIONES'):
-            self.devoluciones = preparar_devoluciones(self.contexto, self.ventas)
-        return self.devoluciones
-
-    def conciliar(self):
-        """T: explica cada fila y arma las seis tablas dimensionales en memoria."""
-        with self.paso('CONCILIACION'):
-            self.resultado = armar_resultado(self.contexto, self.sucursales, self.productos, self.clientes,
-                                             self.ventas, self.devoluciones, self.cambios)
-            self.tablas, rechazos, duplicados, conciliacion, _ = self.resultado
+    def conciliar_silver(self):
+        """Silver: demuestra que cada fila Bronze fue aceptada, rechazada o duplicada."""
+        with self.paso('CONCILIACION_SILVER'):
+            rechazos = pd.DataFrame(
+                self.contexto.rechazos,
+                columns=['fuente', 'fila_origen', 'clave_origen', 'motivo',
+                         'id_ejecucion', 'registro_original'],
+            )
+            duplicados = pd.DataFrame(
+                self.contexto.duplicados,
+                columns=['fuente', 'fila_origen', 'motivo', 'id_ejecucion'],
+            )
+            conciliacion = pd.DataFrame(self.contexto.conciliaciones)
             if not conciliacion['diferencia'].eq(0).all():
                 raise ValueError('No concilian las filas de entrada.')
             rechazos.to_csv(self.ruta_rechazos, index=False, encoding='utf-8-sig')
+            self.auditoria_silver = {
+                'id_ejecucion': self.id_ejecucion,
+                'manifiesto_bronze': self.manifiesto.to_dict('records'),
+                'rechazos': rechazos.to_dict('records'),
+                'duplicados': duplicados.to_dict('records'),
+                'conciliacion': conciliacion.to_dict('records'),
+            }
             self.resumen.update(
-                filas_preparadas={nombre: len(datos) for nombre, datos in self.tablas.items()},
+                filas_silver={nombre: len(datos) for nombre, datos in self.tablas_silver.items()},
                 filas_rechazadas=len(rechazos), filas_duplicadas=len(duplicados),
                 conciliacion=conciliacion.to_dict('records'),
                 rechazos_por_motivo=rechazos['motivo'].value_counts().to_dict(),
             )
-        return self.resultado
+        return self.auditoria_silver
 
     def conectar(self):
         """L: abre SQLite temporal. La base anterior todavía no se reemplaza."""
@@ -168,23 +170,75 @@ class SesionETL:
         return self.motor
 
     def guardar_silver(self):
-        """Persiste las seis tablas limpias en un conjunto Parquet verificado."""
+        """Persiste siete entidades limpias y su auditoría en Parquet/JSON."""
         with self.paso('GUARDAR_SILVER'):
-            self.manifiesto_silver = guardar_silver(self.tablas, self.carpeta_silver, self.id_ejecucion)
+            self.manifiesto_silver = guardar_silver(
+                self.tablas_silver, self.auditoria_silver,
+                self.carpeta_silver, self.id_ejecucion,
+            )
             self.resumen['silver'] = {
                 'carpeta': str(self.carpeta_silver.relative_to(self.raiz)),
-                'id_ejecucion': self.id_ejecucion, 'tablas': self.manifiesto_silver['tablas'],
+                'id_ejecucion': self.id_ejecucion,
+                'version_contrato': self.manifiesto_silver['version_contrato'],
+                'entidades': self.manifiesto_silver['entidades'],
             }
         return self.manifiesto_silver
 
     def leer_silver(self):
-        """Vuelve a leer Parquet; estas tablas son las que se cargarán en Gold."""
+        """Descarta la copia previa y vuelve a leer Silver físicamente desde disco."""
         with self.paso('LEER_SILVER'):
-            self.tablas, manifiesto = leer_silver(self.carpeta_silver, self.id_ejecucion)
+            self.tablas_silver = None
+            tablas, manifiesto, auditoria = leer_silver(
+                self.carpeta_silver, self.id_ejecucion
+            )
             if manifiesto != self.manifiesto_silver:
                 raise ValueError('El conjunto Silver cambió desde su escritura.')
-            self.resultado = (self.tablas, *self.resultado[1:])
+            if auditoria != self.auditoria_silver:
+                raise ValueError('La auditoría Silver cambió desde su escritura.')
+            self.tablas_silver = tablas
+            self.auditoria_silver = auditoria
             self.resumen['gold_lee_desde_silver'] = True
+        return self.tablas_silver
+
+    def construir_dimensiones_gold(self):
+        """Gold: genera cuatro dimensiones y aplica SCD 1, 2 y 3."""
+        with self.paso('DIMENSIONES_GOLD'):
+            self.dimensiones_gold, self.cambios_gold = construir_dimensiones_gold(
+                self.tablas_silver
+            )
+        return self.dimensiones_gold
+
+    def construir_hechos_gold(self):
+        """Gold: resuelve claves sustitutas para ventas y devoluciones."""
+        with self.paso('HECHOS_GOLD'):
+            self.hechos_gold = construir_hechos_gold(
+                self.tablas_silver, self.dimensiones_gold, self.id_ejecucion
+            )
+        return self.hechos_gold
+
+    def conciliar_gold(self):
+        """Gold: exige correspondencia uno a uno entre entidades Silver y hechos."""
+        with self.paso('CONCILIACION_GOLD'):
+            if len(self.hechos_gold['hecho_ventas']) != len(self.tablas_silver['ventas_limpias']):
+                raise ValueError('Ventas Silver y Gold no concilian.')
+            if len(self.hechos_gold['hecho_devoluciones']) != len(self.tablas_silver['devoluciones_limpias']):
+                raise ValueError('Devoluciones Silver y Gold no concilian.')
+            self.tablas = {**self.dimensiones_gold, **self.hechos_gold}
+            rechazos = pd.DataFrame(self.auditoria_silver['rechazos'])
+            duplicados = pd.DataFrame(self.auditoria_silver['duplicados'])
+            conciliacion = pd.DataFrame(self.auditoria_silver['conciliacion'])
+            self.resultado = (
+                self.tablas, rechazos, duplicados, conciliacion, self.cambios_gold
+            )
+            self.resumen['filas_preparadas'] = {
+                nombre: len(datos) for nombre, datos in self.tablas.items()
+            }
+            self.resumen['conciliacion_gold'] = {
+                'ventas_silver': len(self.tablas_silver['ventas_limpias']),
+                'ventas_gold': len(self.hechos_gold['hecho_ventas']),
+                'devoluciones_silver': len(self.tablas_silver['devoluciones_limpias']),
+                'devoluciones_gold': len(self.hechos_gold['hecho_devoluciones']),
+            }
         return self.tablas
 
     def crear_modelo(self):
@@ -218,9 +272,13 @@ class SesionETL:
     def publicar(self, simular_fallo=False):
         """Publica solo la base validada. El fallo inyectado permite probar recuperación."""
         with self.paso('PUBLICACION'):
-            _, manifiesto_silver = leer_silver(self.carpeta_silver, self.id_ejecucion)
+            _, manifiesto_silver, auditoria_silver = leer_silver(
+                self.carpeta_silver, self.id_ejecucion
+            )
             if manifiesto_silver != self.manifiesto_silver:
                 raise ValueError('Silver cambió después de preparar Gold.')
+            if auditoria_silver != self.auditoria_silver:
+                raise ValueError('La auditoría Silver cambió después de preparar Gold.')
             for fila in self.manifiesto.to_dict('records'):
                 if huella_archivo(self.entrada / fila['archivo']) != fila['sha256']:
                     raise ValueError('Las fuentes cambiaron durante la ejecución.')
@@ -278,9 +336,10 @@ class SesionETL:
 def ejecutar_completo(raiz=RAIZ, carpeta_entrada=None, simular_fallo=False, informar=print):
     """Ejecuta una carga, sin regenerar fuentes, correr pruebas ni crear informes."""
     with SesionETL(raiz, carpeta_entrada=carpeta_entrada) as sesion:
-        for metodo in (sesion.extraer, sesion.transformar_dimensiones, sesion.transformar_ventas,
-                       sesion.transformar_devoluciones, sesion.conciliar, sesion.guardar_silver,
-                       sesion.leer_silver, sesion.conectar,
+        for metodo in (sesion.extraer, sesion.limpiar_silver, sesion.conciliar_silver,
+                       sesion.guardar_silver, sesion.leer_silver,
+                       sesion.construir_dimensiones_gold, sesion.construir_hechos_gold,
+                       sesion.conciliar_gold, sesion.conectar,
                        sesion.crear_modelo, sesion.cargar_dimensiones, sesion.cargar_hechos, sesion.validar):
             informar(f'Ejecutando: {metodo.__name__}')
             metodo()

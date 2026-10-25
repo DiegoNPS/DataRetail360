@@ -1,7 +1,7 @@
 """Limpieza por lista permitida; conserva fuentes, código y archivos ajenos."""
 from pathlib import Path
 from ..comun.bloqueo import BloqueoEjecucion
-from ..carga.silver import limpiar_carpeta_silver, CARPETAS_SILVER
+from ..silver.persistencia import limpiar_carpeta_silver, CARPETAS_SILVER
 
 RAIZ = Path(__file__).resolve().parents[2]
 ARCHIVOS_SALIDA = (
@@ -19,7 +19,7 @@ def limpiar_resultados(raiz=RAIZ):
     eliminados = []
     try:
         # Comprobar todas las carpetas antes de borrar para proteger archivos ajenos.
-        from ..carga.silver import comprobar_carpeta
+        from ..silver.persistencia import comprobar_carpeta
         for nombre in sorted(CARPETAS_SILVER):
             comprobar_carpeta(carpeta / nombre)
         for nombre in ARCHIVOS_SALIDA:

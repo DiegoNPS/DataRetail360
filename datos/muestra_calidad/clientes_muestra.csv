@@ -1,0 +1,13 @@
+id_cliente,nombre_cliente,correo,region,segmento
+M001,Camila Soto,camila.soto@example.invalid,Metropolitana,Frecuente
+M002,Matías Rojas,matias.rojas@example.invalid,Valparaiso,Ocasional
+M003,Valentina Muñoz,valentina.munoz@example.invalid,Biobio,Preferente
+M004,Sebastián Díaz,sebastian.diaz.example.invalid,Maule,Frecuente
+M005,Francisca Silva,francisca.silva@example.invalid,Araucania,Ocasional
+M006,Tomás Herrera,tomas@@example.invalid,Metropolitana,Preferente
+M007,Josefa Morales,josefa.morales@example.invalid,Valparaiso,Frecuente
+M008,Nicolás Castro,nicolas.castro@example.invalid,Biobio,Ocasional
+M009,Martina Torres,martina.torres@example.invalid,Maule,Preferente
+M010,Benjamín Reyes,,Araucania,Frecuente
+M011,Antonia Vega,camila.soto@example.invalid,Metropolitana,Ocasional
+M012,Joaquín Fuentes,joaquin.fuentes@,Valparaiso,Preferente
