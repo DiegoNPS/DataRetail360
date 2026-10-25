@@ -45,8 +45,8 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 | Carpeta o archivo | Función |
 |---|---|
 | `src/extraccion/` | Lectura y verificación Bronze |
-| `src/silver/` | Limpieza, conciliación y persistencia de entidades |
-| `src/gold/` | Construcción dimensional desde Silver leída |
+| `src/silver/` | Pipeline, módulos por entidad y persistencia Silver |
+| `src/gold/` | Pipeline, dimensiones, hechos y conciliación Gold |
 | `src/carga/gold/` | Creación y carga de SQLite, validaciones y métricas |
 | `sql/` | Creación de dimensiones, hechos, auditoría y vistas |
 | `datos/entrada/` | Siete CSV sintéticos y su manifiesto |

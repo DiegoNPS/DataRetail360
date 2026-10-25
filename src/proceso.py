@@ -10,9 +10,10 @@ from sqlalchemy import text
 from .comun.bloqueo import BloqueoEjecucion
 from .extraccion.preparar import extraer_fuentes
 from .transformacion.contexto import ContextoTransformacion
-from .silver.limpieza import preparar_tablas_silver
+from .silver.pipeline import preparar_tablas_silver
 from .silver.persistencia import guardar_silver, leer_silver
-from .gold.construccion import construir_dimensiones_gold, construir_hechos_gold
+from .gold.conciliacion import conciliar_hechos
+from .gold.pipeline import construir_dimensiones_gold, construir_hechos_gold
 from .carga.gold.conexion import crear_motor
 from .carga.gold.modelo import crear_modelo
 from .carga.gold.dimensiones import cargar_dimensiones
@@ -219,10 +220,7 @@ class SesionETL:
     def conciliar_gold(self):
         """Gold: exige correspondencia uno a uno entre entidades Silver y hechos."""
         with self.paso('CONCILIACION_GOLD'):
-            if len(self.hechos_gold['hecho_ventas']) != len(self.tablas_silver['ventas_limpias']):
-                raise ValueError('Ventas Silver y Gold no concilian.')
-            if len(self.hechos_gold['hecho_devoluciones']) != len(self.tablas_silver['devoluciones_limpias']):
-                raise ValueError('Devoluciones Silver y Gold no concilian.')
+            conteos_gold = conciliar_hechos(self.tablas_silver, self.hechos_gold)
             self.tablas = {**self.dimensiones_gold, **self.hechos_gold}
             rechazos = pd.DataFrame(self.auditoria_silver['rechazos'])
             duplicados = pd.DataFrame(self.auditoria_silver['duplicados'])
@@ -233,12 +231,7 @@ class SesionETL:
             self.resumen['filas_preparadas'] = {
                 nombre: len(datos) for nombre, datos in self.tablas.items()
             }
-            self.resumen['conciliacion_gold'] = {
-                'ventas_silver': len(self.tablas_silver['ventas_limpias']),
-                'ventas_gold': len(self.hechos_gold['hecho_ventas']),
-                'devoluciones_silver': len(self.tablas_silver['devoluciones_limpias']),
-                'devoluciones_gold': len(self.hechos_gold['hecho_devoluciones']),
-            }
+            self.resumen['conciliacion_gold'] = conteos_gold
         return self.tablas
 
     def crear_modelo(self):

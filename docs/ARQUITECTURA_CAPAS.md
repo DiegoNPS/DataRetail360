@@ -8,7 +8,16 @@ No corrige correos, no elimina duplicados y no crea claves analíticas.
 
 ## Silver
 
-`src/silver/limpieza.py` produce siete entidades:
+`src/silver/pipeline.py` coordina módulos independientes por dominio:
+
+- `clientes.py`: clientes y cambios históricos
+- `productos.py`: productos y correcciones o reclasificaciones
+- `sucursales.py`: sucursales, canales y geografía
+- `ventas.py`: grano, importes, referencias y duplicados de ventas
+- `devoluciones.py`: correspondencia y acumulación de devoluciones
+- `persistencia.py`: escritura, lectura y verificación física de Silver
+
+El pipeline produce siete entidades:
 
 - `clientes_limpios`
 - `cambios_cliente_limpios`
@@ -28,8 +37,10 @@ intercambio seguro.
 
 ## Gold
 
-`src/gold/construccion.py` solo recibe las entidades Silver reabiertas desde
-disco. Allí se construyen:
+`src/gold/pipeline.py` solo recibe las entidades Silver reabiertas desde disco.
+La implementación separa `dimensiones.py`, `hechos.py` y `conciliacion.py`,
+mientras que `src/carga/gold/` mantiene separados el modelo físico, las cargas,
+las vistas, la auditoría, las métricas y las validaciones. Allí se construyen:
 
 - `dim_fecha`
 - `dim_producto` con SCD 1 y SCD 3
