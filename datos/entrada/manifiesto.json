@@ -1,0 +1,46 @@
+{
+  "datos_sinteticos": true,
+  "semilla": 360,
+  "periodo": [
+    "2024-01-01",
+    "2025-12-31"
+  ],
+  "comprobantes_solicitados": 50000,
+  "archivos": [
+    {
+      "archivo": "sucursales.csv",
+      "filas": 22,
+      "sha256": "5653b40d5b0b11e596920cef2e20a172afa508043defa05e50c68d53d1eba10c"
+    },
+    {
+      "archivo": "productos.csv",
+      "filas": 1000,
+      "sha256": "ef10aa70e2648847e3a9c544ff0af708f915ba51029b2cba8077ad3a5dd6a5e4"
+    },
+    {
+      "archivo": "clientes.csv",
+      "filas": 10100,
+      "sha256": "fe78c1747345ceea1e123c5996244ac9c1680e4fe03cf9b59ec7a4f3985376be"
+    },
+    {
+      "archivo": "cambios_cliente.csv",
+      "filas": 2000,
+      "sha256": "73fac7d2434a30e6fd65848440e48cb134c86dbd006abbfa2a5fc1fd21d08a4c"
+    },
+    {
+      "archivo": "cambios_producto.csv",
+      "filas": 50,
+      "sha256": "ffe4df60e23700197f0370b77738d6bc47ed193cb1396db822e0ea8a93660de4"
+    },
+    {
+      "archivo": "ventas.csv",
+      "filas": 125854,
+      "sha256": "b600f1f7dba2a10e99fe27bc8e69047490406622bc777b4040914e011049f944"
+    },
+    {
+      "archivo": "devoluciones.csv",
+      "filas": 4618,
+      "sha256": "5465cb62e6a635e077e9c6a1a6712c17346fdf0ec6b4f73a05ef3810f13bb7ef"
+    }
+  ]
+}

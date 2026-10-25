@@ -1,0 +1,23 @@
+﻿codigo_sucursal,nombre_sucursal,canal,comuna,region,pais,latitud,longitud
+T001,Tienda sintetica 1,Tienda,Santiago,Metropolitana,Chile,-33.4489,-70.6693
+T002,Tienda sintetica 2,Tienda,Valparaiso,Valparaiso,Chile,-33.0472,-71.6127
+T003,Tienda sintetica 3,Tienda,Concepcion,Biobio,Chile,-36.8201,-73.0444
+T004,Tienda sintetica 4,Tienda,Talca,Maule,Chile,-35.4264,-71.6554
+T005,Tienda sintetica 5,Tienda,Temuco,Araucania,Chile,-38.7359,-72.5904
+T006,Tienda sintetica 6,Tienda,Santiago,Metropolitana,Chile,-33.4489,-70.6693
+T007,Tienda sintetica 7,Tienda,Valparaiso,Valparaiso,Chile,-33.0472,-71.6127
+T008,Tienda sintetica 8,Tienda,Concepcion,Biobio,Chile,-36.8201,-73.0444
+T009,Tienda sintetica 9,Tienda,Talca,Maule,Chile,-35.4264,-71.6554
+T010,Tienda sintetica 10,Tienda,Temuco,Araucania,Chile,-38.7359,-72.5904
+T011,Tienda sintetica 11,Tienda,Santiago,Metropolitana,Chile,-33.4489,-70.6693
+T012,Tienda sintetica 12,Tienda,Valparaiso,Valparaiso,Chile,-33.0472,-71.6127
+T013,Tienda sintetica 13,Tienda,Concepcion,Biobio,Chile,-36.8201,-73.0444
+T014,Tienda sintetica 14,Tienda,Talca,Maule,Chile,-35.4264,-71.6554
+T015,Tienda sintetica 15,Tienda,Temuco,Araucania,Chile,-38.7359,-72.5904
+T016,Tienda sintetica 16,Tienda,Santiago,Metropolitana,Chile,-33.4489,-70.6693
+T017,Tienda sintetica 17,Tienda,Valparaiso,Valparaiso,Chile,-33.0472,-71.6127
+T018,Tienda sintetica 18,Tienda,Concepcion,Biobio,Chile,-36.8201,-73.0444
+T019,Tienda sintetica 19,Tienda,Talca,Maule,Chile,-35.4264,-71.6554
+T020,Tienda sintetica 20,Tienda,Temuco,Araucania,Chile,-38.7359,-72.5904
+WEB01,Sitio web,E-commerce,,,Chile,,
+APP01,Aplicacion,E-commerce,,,Chile,,
