@@ -138,7 +138,7 @@ class SesionETL:
         return self.fuentes
 
     def limpiar_silver(self):
-        """Silver: limpia siete entidades y conserva únicamente claves de negocio."""
+        """Silver: limpia ocho entidades y conserva únicamente claves de negocio."""
         with self.paso('LIMPIEZA_SILVER'):
             self.contexto = ContextoTransformacion(self.fuentes, self.id_ejecucion)
             self.tablas_silver = preparar_tablas_silver(self.contexto)
@@ -184,7 +184,7 @@ class SesionETL:
         return self.motor
 
     def guardar_silver(self):
-        """Persiste siete entidades limpias y su auditoría en Parquet/JSON."""
+        """Persiste ocho entidades limpias y su auditoría en Parquet/JSON."""
         with self.paso('GUARDAR_SILVER'):
             self.manifiesto_silver = guardar_silver(
                 self.tablas_silver, self.auditoria_silver,

@@ -2,7 +2,7 @@
 
 ## Bronze
 
-`datos/entrada/` contiene los siete CSV oficiales y `manifiesto.json`. La
+`datos/entrada/` contiene los ocho CSV oficiales y `manifiesto.json`. La
 extracción lee todo como texto, valida columnas y compara cantidad de filas y
 SHA-256 con esa línea base. Una diferencia de contenido se marca `MODIFICADA`,
 se avisa por consola/log y se persiste en `etl_fuentes`; un cambio de columnas
@@ -19,9 +19,10 @@ elimina duplicados y no crea claves analíticas.
 - `sucursales.py`: sucursales, canales y geografía
 - `ventas.py`: grano, importes, referencias y duplicados de ventas
 - `devoluciones.py`: correspondencia y acumulación de devoluciones
+- `stock.py`: grano fecha-producto-tienda y medidas de inventario
 - `persistencia.py`: escritura, lectura y verificación física de Silver
 
-El pipeline produce siete entidades:
+El pipeline produce ocho entidades:
 
 - `clientes_limpios`
 - `cambios_cliente_limpios`
@@ -30,6 +31,7 @@ El pipeline produce siete entidades:
 - `sucursales_limpias`
 - `ventas_limpias`
 - `devoluciones_limpias`
+- `stock_diario_limpio`
 
 Las entidades usan identificadores naturales, fechas de negocio y tipos
 explícitos. Silver valida duplicados, referencias, vigencias, importes y
@@ -52,10 +54,16 @@ las vistas, la auditoría, las métricas y las validaciones. Allí se construyen
 - `dim_sucursal_canal`
 - `hecho_ventas`
 - `hecho_devoluciones`
+- `hecho_stock_diario`, snapshot periódico por fecha, producto y tienda
 
 Cada venta Silver debe producir exactamente un hecho y cada devolución Silver
 debe resolver exactamente una venta Gold. Cualquier desacuerdo detiene la
 publicación.
+
+`hecho_stock_diario` no se mezcla con el grano transaccional de ventas. Sus
+medidas son aditivas entre productos o tiendas para una misma fecha y
+semiaditivas en el tiempo: para analizar varios días se debe utilizar cierre,
+promedio, mínimo o máximo, nunca la suma directa de snapshots.
 
 El control de clientes compara la dimensión actual con la última Gold publicada.
 Los cambios de correo conservan valor anterior/nuevo en `etl_cambios_cliente`;
@@ -73,6 +81,11 @@ Se mantienen las 125.854 filas Bronze de ventas porque el procesamiento tarda
 menos de un minuto y el volumen permite demostrar duplicados, referencias
 desconocidas, fechas inválidas, medidas negativas y descuentos fuera de rango.
 Reducirlo no mejora la ETL y haría perder la línea base.
+
+El snapshot inicial de stock aporta 20.000 filas: 1.000 productos por 20 tiendas
+físicas al cierre del 31-12-2025. Los canales digitales no se tratan como
+ubicaciones físicas de inventario. El esquema permite añadir fechas posteriores
+sin cambiar el modelo.
 
 Los nombres y correos son sintéticos. No se reemplazaron silenciosamente por
 datos personales reales. `datos/muestra_calidad/clientes_muestra.csv` incorpora

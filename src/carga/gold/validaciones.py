@@ -39,6 +39,25 @@ CONTROLES = {
         SELECT COUNT(*) FROM hecho_ventas WHERE importe_tras_descuento<>
         CAST((importe_bruto*(100-porcentaje_descuento)+50)/100 AS INTEGER)
     """,
+    'grano_stock_duplicado': """
+        SELECT COUNT(*) FROM (
+            SELECT clave_fecha,clave_producto,clave_sucursal_canal
+            FROM hecho_stock_diario
+            GROUP BY clave_fecha,clave_producto,clave_sucursal_canal
+            HAVING COUNT(*)>1
+        )
+    """,
+    'medidas_stock_incoherentes': """
+        SELECT COUNT(*) FROM hecho_stock_diario
+        WHERE stock_disponible<>stock_fisico-stock_reservado
+           OR valor_stock<>stock_fisico*costo_unitario
+           OR stock_reservado>stock_fisico
+    """,
+    'stock_fuera_de_tienda': """
+        SELECT COUNT(*) FROM hecho_stock_diario h
+        JOIN dim_sucursal_canal s USING(clave_sucursal_canal)
+        WHERE s.canal<>'Tienda'
+    """,
 }
 
 

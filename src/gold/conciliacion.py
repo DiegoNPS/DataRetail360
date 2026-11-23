@@ -8,9 +8,13 @@ def conciliar_hechos(tablas_silver, hechos_gold):
         "ventas_gold": len(hechos_gold["hecho_ventas"]),
         "devoluciones_silver": len(tablas_silver["devoluciones_limpias"]),
         "devoluciones_gold": len(hechos_gold["hecho_devoluciones"]),
+        "stock_silver": len(tablas_silver["stock_diario_limpio"]),
+        "stock_gold": len(hechos_gold["hecho_stock_diario"]),
     }
     if conteos["ventas_silver"] != conteos["ventas_gold"]:
         raise ValueError("Ventas Silver y Gold no concilian.")
     if conteos["devoluciones_silver"] != conteos["devoluciones_gold"]:
         raise ValueError("Devoluciones Silver y Gold no concilian.")
+    if conteos["stock_silver"] != conteos["stock_gold"]:
+        raise ValueError("Stock Silver y Gold no concilian.")
     return conteos

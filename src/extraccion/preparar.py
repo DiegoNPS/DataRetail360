@@ -1,4 +1,4 @@
-"""Coordinación de las siete fuentes; cada extractor se ocupa de su archivo."""
+"""Coordinación de las ocho fuentes; cada extractor se ocupa de su archivo."""
 import pandas as pd
 from .lector_csv import leer_manifiesto
 from .sucursales import extraer_sucursales
@@ -6,6 +6,7 @@ from .productos import extraer_productos, extraer_cambios_producto
 from .clientes import extraer_clientes, extraer_cambios_cliente
 from .ventas import extraer_ventas
 from .devoluciones import extraer_devoluciones
+from .stock import extraer_stock_diario
 
 
 def extraer_fuentes(carpeta_entrada, id_ejecucion):
@@ -19,6 +20,7 @@ def extraer_fuentes(carpeta_entrada, id_ejecucion):
         ('cambios_producto', extraer_cambios_producto),
         ('ventas', extraer_ventas),
         ('devoluciones', extraer_devoluciones),
+        ('stock_diario', extraer_stock_diario),
     )
     fuentes = {}
     manifiesto_real = []

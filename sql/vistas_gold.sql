@@ -95,3 +95,19 @@ WITH totales AS (
 SELECT t.*, c.comprobantes,
        t.ventas_tras_descuento*1.0/c.comprobantes AS ticket_promedio_antes_devoluciones
 FROM totales t JOIN tickets c USING(clave_sucursal_canal);
+
+-- Snapshot de inventario: no sumar medidas de stock entre fechas distintas.
+CREATE VIEW vista_stock_tiendas AS
+SELECT h.*, f.fecha AS fecha_stock,
+       p.codigo_producto, p.nombre_producto, p.marca, p.categoria, p.subcategoria,
+       s.codigo_sucursal, s.nombre_sucursal, s.comuna, s.region AS region_sucursal,
+       CASE
+         WHEN h.stock_disponible=0 THEN 'AGOTADO'
+         WHEN h.stock_disponible<=5 THEN 'CRITICO'
+         WHEN h.stock_disponible<=15 THEN 'BAJO'
+         ELSE 'DISPONIBLE'
+       END AS estado_stock
+FROM hecho_stock_diario h
+JOIN dim_fecha f USING(clave_fecha)
+JOIN dim_producto p USING(clave_producto)
+JOIN dim_sucursal_canal s USING(clave_sucursal_canal);

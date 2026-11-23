@@ -63,8 +63,10 @@ def construir_dim_sucursal(sucursales):
     return dimension
 
 
-def construir_dim_fecha(ventas, devoluciones):
+def construir_dim_fecha(ventas, devoluciones, stock=None):
     fechas = list(ventas["fecha_venta"]) + list(devoluciones["fecha_devolucion"])
+    if stock is not None:
+        fechas.extend(stock["fecha_stock"].tolist())
     inicio, fin = str(min(fechas))[:4], str(max(fechas))[:4]
     calendario = pd.date_range(inicio + "-01-01", fin + "-12-31")
     return pd.DataFrame(dict(clave_fecha=calendario.strftime("%Y%m%d").astype(int),

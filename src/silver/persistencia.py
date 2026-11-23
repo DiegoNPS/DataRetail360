@@ -1,4 +1,4 @@
-"""Persistencia segura de siete entidades Silver y su auditoría."""
+"""Persistencia segura de ocho entidades Silver y su auditoría."""
 from __future__ import annotations
 
 import json
@@ -18,6 +18,7 @@ ENTIDADES_SILVER = (
     "sucursales_limpias",
     "ventas_limpias",
     "devoluciones_limpias",
+    "stock_diario_limpio",
 )
 ARCHIVOS_SILVER = (
     {nombre + ".parquet" for nombre in ENTIDADES_SILVER}
@@ -40,7 +41,7 @@ CARPETAS_SILVER = {
     "silver_demostracion_temporal",
     "silver_demostracion_anterior",
 }
-VERSION_CONTRATO = 2
+VERSION_CONTRATO = 3
 
 
 def comprobar_carpeta(carpeta):
@@ -101,7 +102,7 @@ def leer_silver(carpeta, id_ejecucion=None):
     if len(entradas) != len(ENTIDADES_SILVER) or {
         fila["entidad"] for fila in entradas
     } != set(ENTIDADES_SILVER):
-        raise ValueError("El manifiesto Silver no describe las siete entidades.")
+        raise ValueError("El manifiesto Silver no describe las ocho entidades.")
     for fila in entradas:
         if fila["archivo"] != fila["entidad"] + ".parquet":
             raise ValueError("Nombre de archivo Silver inválido.")
@@ -136,7 +137,7 @@ def guardar_silver(tablas, auditoria, carpeta, id_ejecucion):
     temporal = comprobar_carpeta(destino.with_name(destino.name + "_temporal"))
     anterior = comprobar_carpeta(destino.with_name(destino.name + "_anterior"))
     if set(tablas) != set(ENTIDADES_SILVER):
-        raise ValueError("Se deben preparar exactamente las siete entidades Silver.")
+        raise ValueError("Se deben preparar exactamente las ocho entidades Silver.")
     if auditoria.get("id_ejecucion") != id_ejecucion:
         raise ValueError("La auditoría Silver corresponde a otra ejecución.")
     if anterior.exists():

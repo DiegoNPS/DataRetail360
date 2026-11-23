@@ -21,6 +21,7 @@ CLAVES_GOLD = {
     "clave_sucursal_canal",
     "clave_venta",
     "clave_devolucion",
+    "clave_stock",
 }
 
 
@@ -32,10 +33,10 @@ class PruebasCapas(unittest.TestCase):
             self.assertEqual(hashlib.sha256(ruta.read_bytes()).hexdigest(), entrada["sha256"])
             self.assertEqual(len(pd.read_csv(ruta, dtype=str, keep_default_na=False)), entrada["filas"])
 
-    def test_silver_tiene_siete_entidades_sin_claves_sustitutas(self):
+    def test_silver_tiene_ocho_entidades_sin_claves_sustitutas(self):
         manifiesto = json.loads((SILVER / "manifiesto_silver.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifiesto["version_contrato"], 2)
-        self.assertEqual(len(manifiesto["entidades"]), 7)
+        self.assertEqual(manifiesto["version_contrato"], 3)
+        self.assertEqual(len(manifiesto["entidades"]), 8)
         for entrada in manifiesto["entidades"]:
             datos = pd.read_parquet(SILVER / entrada["archivo"])
             self.assertFalse(CLAVES_GOLD.intersection(datos.columns), entrada["entidad"])
@@ -53,10 +54,11 @@ class PruebasCapas(unittest.TestCase):
                     (SELECT COUNT(*) FROM dim_cliente),
                     (SELECT COUNT(*) FROM dim_sucursal_canal),
                     (SELECT COUNT(*) FROM hecho_ventas),
-                    (SELECT COUNT(*) FROM hecho_devoluciones)
+                    (SELECT COUNT(*) FROM hecho_devoluciones),
+                    (SELECT COUNT(*) FROM hecho_stock_diario)
                 """
             ).fetchone()
-            self.assertEqual(conteos, (731, 1000, 12000, 22, 125217, 4612))
+            self.assertEqual(conteos, (731, 1000, 12000, 22, 125217, 4612, 20000))
             metricas = conexion.execute(
                 """
                 SELECT
@@ -73,7 +75,7 @@ class PruebasCapas(unittest.TestCase):
                 (94699501000, 6758099015, 87941401985, 86307738295),
             )
 
-    def test_gold_tiene_seis_vistas_y_sin_huerfanos(self):
+    def test_gold_tiene_siete_vistas_y_sin_huerfanos(self):
         with closing(sqlite3.connect(BASE)) as conexion:
             vistas = {
                 fila[0]
@@ -90,6 +92,7 @@ class PruebasCapas(unittest.TestCase):
                     "vista_actividad_mensual",
                     "vista_ventas_por_producto",
                     "vista_ventas_por_sucursal",
+                    "vista_stock_tiendas",
                 },
             )
             self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
@@ -97,6 +100,35 @@ class PruebasCapas(unittest.TestCase):
                 "SELECT SUM(importe_tras_descuento), SUM(importe_devoluciones) FROM vista_ventas_netas"
             ).fetchone()
             self.assertEqual(suma_vista, (87941401985, 1633663690))
+
+    def test_stock_respeta_grano_formulas_y_tiendas_fisicas(self):
+        with closing(sqlite3.connect(BASE)) as conexion:
+            resumen = conexion.execute(
+                """
+                SELECT COUNT(*), COUNT(DISTINCT clave_producto),
+                       COUNT(DISTINCT clave_sucursal_canal),
+                       SUM(stock_disponible), SUM(valor_stock)
+                FROM hecho_stock_diario
+                """
+            ).fetchone()
+            self.assertEqual(resumen[:3], (20000, 1000, 20))
+            self.assertGreater(resumen[3], 0)
+            self.assertGreater(resumen[4], 0)
+            incoherencias = conexion.execute(
+                """
+                SELECT COUNT(*) FROM hecho_stock_diario
+                WHERE stock_disponible<>stock_fisico-stock_reservado
+                   OR valor_stock<>stock_fisico*costo_unitario
+                """
+            ).fetchone()[0]
+            self.assertEqual(incoherencias, 0)
+            canales = conexion.execute(
+                """
+                SELECT DISTINCT s.canal FROM hecho_stock_diario h
+                JOIN dim_sucursal_canal s USING(clave_sucursal_canal)
+                """
+            ).fetchall()
+            self.assertEqual(canales, [("Tienda",)])
 
 
 if __name__ == "__main__":

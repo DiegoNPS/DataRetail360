@@ -19,9 +19,11 @@ def main():
     print('Silver Parquet:', resumen['silver']['carpeta'])
     print('Líneas de venta:', resumen['filas_preparadas']['hecho_ventas'])
     print('Devoluciones:', resumen['filas_preparadas']['hecho_devoluciones'])
+    print('Snapshots de stock:', resumen['filas_preparadas']['hecho_stock_diario'])
     print('Venta neta sintética CLP:', resumen['metricas']['ventas_netas'])
     print('Fuentes Bronze modificadas:', len(resumen['fuentes_modificadas']))
     print('Cambios de cliente detectados:', resumen['cambios_cliente_detectados'])
+    print('Valor del stock CLP:', resumen['metricas']['valor_stock'])
     print('Los resultados anteriores fueron reemplazados tras validar la carga.')
 
 

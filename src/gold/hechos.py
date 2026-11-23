@@ -54,3 +54,36 @@ def construir_hecho_devoluciones(devoluciones, ventas, id_ejecucion):
     if len(hechos) != len(devoluciones):
         raise ValueError("No existe correspondencia uno a uno entre devoluciones Silver y Gold")
     return hechos
+
+
+def construir_hecho_stock(stock, productos, sucursales, id_ejecucion):
+    """Resuelve el snapshot Silver al grano fecha-producto-tienda de Gold."""
+    claves_producto = productos.set_index("codigo_producto")["clave_producto"].to_dict()
+    claves_sucursal = sucursales.set_index("codigo_sucursal")["clave_sucursal_canal"].to_dict()
+    filas = []
+    for registro in stock.itertuples():
+        if registro.codigo_producto not in claves_producto:
+            raise ValueError(f"Gold no resolvio producto de stock {registro.codigo_producto}")
+        if registro.codigo_sucursal not in claves_sucursal:
+            raise ValueError(f"Gold no resolvio tienda de stock {registro.codigo_sucursal}")
+        filas.append(
+            dict(
+                clave_fecha=int(registro.fecha_stock.replace("-", "")),
+                clave_producto=claves_producto[registro.codigo_producto],
+                clave_sucursal_canal=claves_sucursal[registro.codigo_sucursal],
+                stock_fisico=int(registro.stock_fisico),
+                stock_reservado=int(registro.stock_reservado),
+                stock_disponible=int(registro.stock_disponible),
+                stock_en_transito=int(registro.stock_en_transito),
+                costo_unitario=int(registro.costo_unitario),
+                valor_stock=int(registro.valor_stock),
+                id_ejecucion=id_ejecucion,
+            )
+        )
+    hechos = pd.DataFrame(filas).sort_values(
+        ["clave_fecha", "clave_producto", "clave_sucursal_canal"]
+    ).reset_index(drop=True)
+    hechos.insert(0, "clave_stock", range(1, len(hechos) + 1))
+    if len(hechos) != len(stock):
+        raise ValueError("No existe correspondencia uno a uno entre stock Silver y Gold")
+    return hechos

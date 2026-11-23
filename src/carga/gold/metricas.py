@@ -19,6 +19,14 @@ def consultar_resultados(conexion, tablas):
         FROM hecho_ventas GROUP BY sistema_origen,id_comprobante)
     ''')).scalar())
     metricas['ticket_promedio_antes_devoluciones'] = metricas['ventas_tras_descuento'] / metricas['comprobantes']
+    stock = dict(conexion.execute(text('''
+        SELECT MAX(f.fecha) AS fecha_stock,
+               SUM(s.stock_disponible) AS unidades_stock_disponible,
+               SUM(s.valor_stock) AS valor_stock,
+               SUM(CASE WHEN s.stock_disponible=0 THEN 1 ELSE 0 END) AS posiciones_agotadas
+        FROM hecho_stock_diario s JOIN dim_fecha f USING(clave_fecha)
+    ''')).mappings().one())
+    metricas.update(stock)
     huellas = {}
     for nombre in tablas:
         datos = pd.read_sql_query(text(f'SELECT * FROM {nombre} ORDER BY 1'), conexion)

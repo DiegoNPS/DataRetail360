@@ -1,7 +1,7 @@
 # DataRetail360 — ETL Bronze, Silver y Gold
 
 ETL reproducible de retail: CSV Bronze → entidades Parquet Silver → modelo
-dimensional SQLite Gold. Los CSV oficiales no se regeneran ni se modifican.
+dimensional SQLite Gold. La ETL no regenera ni modifica los CSV oficiales.
 
 ## Preparación
 
@@ -18,23 +18,23 @@ dimensional SQLite Gold. Los CSV oficiales no se regeneran ni se modifican.
 
 ## Orden real de ejecución
 
-1. **Bronze:** valida los siete CSV y compara filas/SHA-256 con el manifiesto de referencia. Una edición válida se carga con advertencia y auditoría; una ruptura de columnas se rechaza.
-2. **Silver:** normaliza y valida maestros, cambios, ventas y devoluciones.
-3. Guarda siete Parquet con claves de negocio más
+1. **Bronze:** valida los ocho CSV y compara filas/SHA-256 con el manifiesto de referencia. Una edición válida se carga con advertencia y auditoría; una ruptura de columnas se rechaza.
+2. **Silver:** normaliza y valida maestros, cambios, ventas, devoluciones y stock.
+3. Guarda ocho Parquet con claves de negocio más
    `auditoria_silver.json` y `manifiesto_silver.json`.
 4. Descarta la copia en memoria y vuelve a leer Silver desde disco.
-5. **Gold:** construye cuatro dimensiones, aplica SCD 1/2/3, resuelve dos
+5. **Gold:** construye cuatro dimensiones, aplica SCD 1/2/3, resuelve tres
    hechos y exige correspondencia uno a uno con Silver.
-6. Carga una SQLite temporal, crea seis vistas, valida y recién entonces
+6. Carga una SQLite temporal, crea siete vistas, valida y recién entonces
    reemplaza la base final.
 
 ## Resultados que se generan
 
 - Ejecución completa: `resultados/dataretail360.sqlite` y `resultados/silver/`.
 - Demostración manual: `resultados/demostracion.sqlite` y `resultados/silver_demostracion/`.
-- Cada Silver contiene siete Parquet de entidades limpias, una auditoría y un
+- Cada Silver contiene ocho Parquet de entidades limpias, una auditoría y un
   manifiesto. No contiene `dim_*`, `hecho_*` ni claves sustitutas Gold.
-- SQLite contiene cuatro dimensiones, dos hechos, seis vistas y siete tablas de
+- SQLite contiene cuatro dimensiones, tres hechos, siete vistas y siete tablas de
   auditoría.
 - Logs, rechazos y resúmenes se guardan en `resultados/` con nombres fijos.
 
@@ -57,7 +57,7 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 | `src/gold/` | Pipeline, dimensiones, hechos y conciliación Gold |
 | `src/carga/gold/` | Creación y carga de SQLite, validaciones y métricas |
 | `sql/` | Creación de dimensiones, hechos, auditoría y vistas |
-| `datos/entrada/` | Siete CSV sintéticos y su manifiesto |
+| `datos/entrada/` | Ocho CSV sintéticos y su manifiesto |
 | `notebooks/demostracion_etl.ipynb` | Ejecución manual de las etapas |
 | `notebooks/analisis_calidad_datos.ipynb` | Perfil reproducible de las fuentes |
 | `pruebas/` | Controles de capas, equivalencia Gold, recuperación y cambios Bronze/cliente |
@@ -70,9 +70,19 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 .\.venv\Scripts\python.exe -m unittest discover -s pruebas -v
 ```
 
-La carga oficial validada produce 125.217 líneas de venta, 4.612 devoluciones
-y venta neta sintética de $86.307.738.295 CLP. Son cifras de control del
+La carga oficial validada produce 125.217 líneas de venta, 4.612 devoluciones,
+20.000 snapshots de stock y venta neta sintética de $86.307.738.295 CLP. Son cifras de control del
 conjunto incluido, no constantes usadas por el ETL.
+
+## Hecho de stock de tiendas
+
+`hecho_stock_diario` es un snapshot periódico con grano fecha-producto-tienda.
+La fuente inicial contiene el cierre del 31-12-2025 para 1.000 productos en 20
+tiendas físicas. Registra stock físico, reservado, disponible, en tránsito,
+costo unitario y valor del stock. Estas medidas pueden sumarse entre productos
+o tiendas para una misma fecha, pero no entre fechas diferentes. La vista
+`vista_stock_tiendas` agrega los atributos descriptivos y clasifica cada posición
+como `AGOTADO`, `CRITICO`, `BAJO` o `DISPONIBLE`.
 
 ## Nueva versión de correos sintéticos
 

@@ -3,7 +3,7 @@ from .dimensiones import (
     construir_dim_cliente, construir_dim_fecha, construir_dim_producto,
     construir_dim_sucursal,
 )
-from .hechos import construir_hecho_devoluciones, construir_hecho_ventas
+from .hechos import construir_hecho_devoluciones, construir_hecho_stock, construir_hecho_ventas
 
 
 def construir_dimensiones_gold(tablas_silver):
@@ -15,7 +15,8 @@ def construir_dimensiones_gold(tablas_silver):
     )
     sucursales = construir_dim_sucursal(tablas_silver["sucursales_limpias"])
     fechas = construir_dim_fecha(
-        tablas_silver["ventas_limpias"], tablas_silver["devoluciones_limpias"]
+        tablas_silver["ventas_limpias"], tablas_silver["devoluciones_limpias"],
+        tablas_silver["stock_diario_limpio"],
     )
     return {"dim_fecha": fechas, "dim_producto": productos, "dim_cliente": clientes,
             "dim_sucursal_canal": sucursales}, cambios
@@ -29,4 +30,9 @@ def construir_hechos_gold(tablas_silver, dimensiones, id_ejecucion):
     devoluciones = construir_hecho_devoluciones(
         tablas_silver["devoluciones_limpias"], ventas, id_ejecucion
     )
-    return {"hecho_ventas": ventas, "hecho_devoluciones": devoluciones}
+    stock = construir_hecho_stock(
+        tablas_silver["stock_diario_limpio"], dimensiones["dim_producto"],
+        dimensiones["dim_sucursal_canal"], id_ejecucion,
+    )
+    return {"hecho_ventas": ventas, "hecho_devoluciones": devoluciones,
+            "hecho_stock_diario": stock}

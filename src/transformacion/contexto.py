@@ -28,7 +28,7 @@ class ContextoTransformacion:
         self.rechazos = []
         self.duplicados = []
         self.conciliaciones = []
-        numericos = {'ventas': ['numero_linea', 'cantidad', 'precio_unitario', 'porcentaje_descuento', 'importe_bruto', 'importe_tras_descuento'], 'devoluciones': ['numero_linea', 'cantidad_devuelta', 'importe_devuelto'], 'productos': ['costo_unitario', 'precio_lista']}
+        numericos = {'ventas': ['numero_linea', 'cantidad', 'precio_unitario', 'porcentaje_descuento', 'importe_bruto', 'importe_tras_descuento'], 'devoluciones': ['numero_linea', 'cantidad_devuelta', 'importe_devuelto'], 'productos': ['costo_unitario', 'precio_lista'], 'stock_diario': ['stock_fisico', 'stock_reservado', 'stock_en_transito', 'costo_unitario']}
         for nombre, columnas in numericos.items():
             for columna in columnas:
                 self.fuentes[nombre][columna] = self.fuentes[nombre][columna].map(lambda valor: str(int(float(valor))) if es_entero(valor) else valor)

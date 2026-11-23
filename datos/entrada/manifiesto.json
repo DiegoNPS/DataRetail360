@@ -41,8 +41,14 @@
       "archivo": "devoluciones.csv",
       "filas": 4618,
       "sha256": "5465cb62e6a635e077e9c6a1a6712c17346fdf0ec6b4f73a05ef3810f13bb7ef"
+    },
+    {
+      "archivo": "stock_diario.csv",
+      "filas": 20000,
+      "sha256": "3fb65a0e29143605f8b0ecbc2fac00bf2b8e1504f2ae200d8f0085fc8ff9b206"
     }
   ],
-  "version_datos": "360-correos-v2",
-  "nota_correos": "Direcciones sintéticas; dominios variados; 8 casos inválidos sin ventas ni cambios asociados."
+  "version_datos": "360-stock-v1",
+  "nota_correos": "Direcciones sintéticas; dominios variados; 8 casos inválidos sin ventas ni cambios asociados.",
+  "nota_stock": "Snapshot sintético al 2025-12-31 para 1.000 productos en 20 tiendas físicas; 20.000 filas."
 }

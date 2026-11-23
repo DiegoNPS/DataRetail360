@@ -16,10 +16,10 @@ Seleccionar el kernel Python - DataRetail360 y ejecutar las celdas en orden.
 Verificacion despues de la carga, desde PowerShell en DataRetail360:
 .\.venv\Scripts\python.exe -m unittest discover -s pruebas -v
 
-Resultados de control: 125.217 lineas de venta, 4.612 devoluciones y
-venta neta sintetica de 86.307.738.295 CLP.
+Resultados de control: 125.217 lineas de venta, 4.612 devoluciones,
+20.000 posiciones de stock y venta neta sintetica de 86.307.738.295 CLP.
 
 Incluye codigo, SQL, pruebas, notebooks, dependencias, instrucciones tecnicas
-y los siete CSV de entrada con su manifiesto, necesarios para reproducir la ETL.
+y los ocho CSV de entrada con su manifiesto, necesarios para reproducir la ETL.
 El entorno Python y las salidas se generan al preparar y ejecutar.
 Mas detalle en README.md.

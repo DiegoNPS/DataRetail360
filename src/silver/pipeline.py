@@ -4,6 +4,7 @@ from .devoluciones import limpiar_devoluciones
 from .productos import limpiar_productos
 from .sucursales import limpiar_sucursales
 from .ventas import limpiar_ventas
+from .stock import limpiar_stock
 
 
 def preparar_tablas_silver(contexto):
@@ -13,6 +14,7 @@ def preparar_tablas_silver(contexto):
     sucursales = limpiar_sucursales(contexto)
     ventas = limpiar_ventas(contexto, sucursales, productos, clientes, cambios_cliente)
     devoluciones = limpiar_devoluciones(contexto, ventas)
+    stock = limpiar_stock(contexto, sucursales, productos)
     return {
         "clientes_limpios": clientes,
         "cambios_cliente_limpios": cambios_cliente,
@@ -21,4 +23,5 @@ def preparar_tablas_silver(contexto):
         "sucursales_limpias": sucursales,
         "ventas_limpias": ventas,
         "devoluciones_limpias": devoluciones,
+        "stock_diario_limpio": stock,
     }
