@@ -6,7 +6,7 @@
 |---|---:|---|
 | sucursales | 22 | 2 canales digitales sin geografía, condición permitida |
 | productos | 1.000 | claves únicas y jerarquías válidas |
-| clientes | 10.100 | 100 copias normalizadas; quedan 10.000 identidades |
+| clientes | 10.108 | 100 copias normalizadas y 8 correos rechazados; quedan 10.000 identidades |
 | cambios_cliente | 2.000 | eventos SCD 2 válidos |
 | cambios_producto | 50 | 30 correcciones SCD 1 y 20 reclasificaciones SCD 3 |
 | ventas | 125.854 | 626 copias idénticas y errores deliberados |
@@ -23,9 +23,7 @@
   aparecen en la auditoría Silver.
 - **Devoluciones:** existen eventos anteriores a la venta, sin venta aceptada o
   con acumulados incoherentes. Se rechazan sin alterar el hecho de venta.
-- **Correos:** todos cumplen un patrón sintáctico básico y usan el dominio
-  reservado `example.invalid`. Silver conserva la regla original: exige valor
-  y unicidad, pero no simula la existencia del buzón.
+- **Correos:** dominios Gmail, Hotmail, Outlook y example.com/example.org con subdominios. Silver normaliza, valida formato y rechaza 7 malformados y 1 vacío. No consulta DNS ni comprueba buzones. Véase `VALIDACION_CORREOS.md`.
 
 ## Controles automatizados
 

@@ -20,6 +20,8 @@ def main():
     print('Líneas de venta:', resumen['filas_preparadas']['hecho_ventas'])
     print('Devoluciones:', resumen['filas_preparadas']['hecho_devoluciones'])
     print('Venta neta sintética CLP:', resumen['metricas']['ventas_netas'])
+    print('Fuentes Bronze modificadas:', len(resumen['fuentes_modificadas']))
+    print('Cambios de cliente detectados:', resumen['cambios_cliente_detectados'])
     print('Los resultados anteriores fueron reemplazados tras validar la carga.')
 
 

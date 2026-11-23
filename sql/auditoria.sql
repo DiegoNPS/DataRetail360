@@ -42,9 +42,26 @@ CREATE TABLE etl_cambios_producto (
     fecha_efectiva TEXT NOT NULL
 );
 
+CREATE TABLE etl_cambios_cliente (
+    id_cambio INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_ejecucion TEXT NOT NULL,
+    id_cliente TEXT NOT NULL,
+    campo TEXT NOT NULL,
+    tipo_scd INTEGER CHECK(tipo_scd IN (1,2,3) OR tipo_scd IS NULL),
+    tipo_evento TEXT NOT NULL CHECK(tipo_evento IN ('ALTA','BAJA','MODIFICACION')),
+    valor_anterior TEXT,
+    valor_nuevo TEXT,
+    detectado_en TEXT NOT NULL,
+    UNIQUE(id_ejecucion,id_cliente,campo,tipo_evento)
+);
+
 CREATE TABLE etl_fuentes (
     archivo TEXT PRIMARY KEY,
     filas INTEGER NOT NULL,
     sha256 TEXT NOT NULL,
+    filas_esperadas INTEGER NOT NULL,
+    sha256_esperado TEXT NOT NULL,
+    estado_fuente TEXT NOT NULL CHECK(estado_fuente IN ('SIN_CAMBIOS','MODIFICADA')),
+    detalle_cambio TEXT NOT NULL,
     id_ejecucion TEXT NOT NULL
 );

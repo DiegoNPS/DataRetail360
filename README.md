@@ -18,7 +18,7 @@ dimensional SQLite Gold. Los CSV oficiales no se regeneran ni se modifican.
 
 ## Orden real de ejecución
 
-1. **Bronze:** verifica los siete CSV, sus columnas, filas y SHA-256.
+1. **Bronze:** valida los siete CSV y compara filas/SHA-256 con el manifiesto de referencia. Una edición válida se carga con advertencia y auditoría; una ruptura de columnas se rechaza.
 2. **Silver:** normaliza y valida maestros, cambios, ventas y devoluciones.
 3. Guarda siete Parquet con claves de negocio más
    `auditoria_silver.json` y `manifiesto_silver.json`.
@@ -34,11 +34,19 @@ dimensional SQLite Gold. Los CSV oficiales no se regeneran ni se modifican.
 - Demostración manual: `resultados/demostracion.sqlite` y `resultados/silver_demostracion/`.
 - Cada Silver contiene siete Parquet de entidades limpias, una auditoría y un
   manifiesto. No contiene `dim_*`, `hecho_*` ni claves sustitutas Gold.
-- SQLite contiene cuatro dimensiones, dos hechos, seis vistas y seis tablas de
+- SQLite contiene cuatro dimensiones, dos hechos, seis vistas y siete tablas de
   auditoría.
 - Logs, rechazos y resúmenes se guardan en `resultados/` con nombres fijos.
 
 La ejecución reconstruye la base; no es incremental. Las salidas anteriores se reemplazan tras las validaciones correspondientes, sin acumular carpetas por corrida. Los CSV originales se conservan. La base final anterior se conserva si la nueva carga falla antes de publicarse.
+
+## Control de cambios de fuentes y clientes
+
+- `manifiesto.json` es la línea base de la entrega, no un bloqueo permanente. `etl_fuentes` guarda filas y SHA-256 esperados/observados, el estado `SIN_CAMBIOS` o `MODIFICADA` y el detalle de la diferencia.
+- Si un archivo cambia antes de iniciar la ETL, la consola y el log emiten un aviso; el contrato de columnas y las reglas de calidad siguen siendo obligatorios.
+- Si un archivo cambia mientras la ETL está en curso, la publicación se detiene para evitar una base construida con versiones mezcladas.
+- Un correo modificado respecto de la última Gold publicada se aplica como SCD tipo 1. `etl_cambios_cliente` conserva cliente, valor anterior, valor nuevo, ejecución y fecha de detección. También audita altas y bajas, y su historial sobrevive a las reconstrucciones completas.
+- La primera carga establece la línea base y no registra falsamente a todos los clientes como altas.
 
 ## Contenido
 
@@ -52,7 +60,7 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 | `datos/entrada/` | Siete CSV sintéticos y su manifiesto |
 | `notebooks/demostracion_etl.ipynb` | Ejecución manual de las etapas |
 | `notebooks/analisis_calidad_datos.ipynb` | Perfil reproducible de las fuentes |
-| `pruebas/` | Controles de separación de capas y equivalencia Gold |
+| `pruebas/` | Controles de capas, equivalencia Gold, recuperación y cambios Bronze/cliente |
 | `requirements.txt` | Dependencias Python |
 | Archivos `.cmd` | Preparación y accesos de ejecución |
 
@@ -65,3 +73,7 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 La carga oficial validada produce 125.217 líneas de venta, 4.612 devoluciones
 y venta neta sintética de $86.307.738.295 CLP. Son cifras de control del
 conjunto incluido, no constantes usadas por el ETL.
+
+## Nueva versión de correos sintéticos
+
+Las fuentes de esta versión tienen correos de dominios variados y ocho clientes adicionales con correos inválidos para demostrar rechazos. Se actualizó el manifiesto de entrada de forma explícita. Véase `docs/VALIDACION_CORREOS.md`. Las ventas y sus importes se conservan. Los notebooks se entregan sin salidas antiguas: ejecutarlos para generar la evidencia actual.

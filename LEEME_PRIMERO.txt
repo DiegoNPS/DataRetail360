@@ -1,0 +1,25 @@
+DATARETAIL360 - INSTRUCCIONES DE EJECUCION
+
+1. Extraer todo el ZIP, por ejemplo en C:\ETL.
+2. Entrar a la carpeta DataRetail360.
+3. Tener Python 3.12 o posterior instalado.
+4. Ejecutar PREPARAR_ENTORNO.cmd. Requiere Internet para instalar dependencias.
+5. Ejecutar EJECUTAR_COMPLETO.cmd.
+
+La ejecucion genera resultados/dataretail360.sqlite, los archivos Silver,
+los registros de ejecucion, el resumen y los rechazos.
+No hay que abrir ni ejecutar individualmente los archivos de src.
+
+Opcional: ABRIR_DEMOSTRACION.cmd abre los notebooks para recorrer las etapas.
+Seleccionar el kernel Python - DataRetail360 y ejecutar las celdas en orden.
+
+Verificacion despues de la carga, desde PowerShell en DataRetail360:
+.\.venv\Scripts\python.exe -m unittest discover -s pruebas -v
+
+Resultados de control: 125.217 lineas de venta, 4.612 devoluciones y
+venta neta sintetica de 86.307.738.295 CLP.
+
+Incluye codigo, SQL, pruebas, notebooks, dependencias, instrucciones tecnicas
+y los siete CSV de entrada con su manifiesto, necesarios para reproducir la ETL.
+El entorno Python y las salidas se generan al preparar y ejecutar.
+Mas detalle en README.md.

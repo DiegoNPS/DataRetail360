@@ -3,8 +3,12 @@
 ## Bronze
 
 `datos/entrada/` contiene los siete CSV oficiales y `manifiesto.json`. La
-extracción lee todo como texto y valida columnas, cantidad de filas y SHA-256.
-No corrige correos, no elimina duplicados y no crea claves analíticas.
+extracción lee todo como texto, valida columnas y compara cantidad de filas y
+SHA-256 con esa línea base. Una diferencia de contenido se marca `MODIFICADA`,
+se avisa por consola/log y se persiste en `etl_fuentes`; un cambio de columnas
+sí rompe el contrato. La publicación vuelve a comprobar las huellas observadas
+para impedir cambios durante una ejecución. Bronze no corrige correos, no
+elimina duplicados y no crea claves analíticas.
 
 ## Silver
 
@@ -44,7 +48,7 @@ las vistas, la auditoría, las métricas y las validaciones. Allí se construyen
 
 - `dim_fecha`
 - `dim_producto` con SCD 1 y SCD 3
-- `dim_cliente` con SCD 2
+- `dim_cliente` con SCD 1 para correo y SCD 2 para región/segmento
 - `dim_sucursal_canal`
 - `hecho_ventas`
 - `hecho_devoluciones`
@@ -52,6 +56,12 @@ las vistas, la auditoría, las métricas y las validaciones. Allí se construyen
 Cada venta Silver debe producir exactamente un hecho y cada devolución Silver
 debe resolver exactamente una venta Gold. Cualquier desacuerdo detiene la
 publicación.
+
+El control de clientes compara la dimensión actual con la última Gold publicada.
+Los cambios de correo conservan valor anterior/nuevo en `etl_cambios_cliente`;
+también se registran altas y bajas. La primera ejecución solo fija la línea base
+y el historial se copia a la nueva base antes del reemplazo atómico, por lo que
+la reconstrucción completa no elimina esa trazabilidad.
 
 `src/carga/gold/` crea la base temporal, inserta dimensiones antes que hechos,
 carga la auditoría, ejecuta controles SQL y publica SQLite solo si todos los

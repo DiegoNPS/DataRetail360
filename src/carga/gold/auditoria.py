@@ -3,16 +3,19 @@ from sqlalchemy import text
 from .insercion import cargar_tablas
 
 
-def cargar_auditoria(conexion, resultado, manifiesto):
+def cargar_auditoria(conexion, resultado, manifiesto, cambios_clientes=None):
     """Guarda la trazabilidad en SQLite en lugar de exportar muchos archivos."""
     _, rechazos, duplicados, conciliacion, cambios = resultado
-    for nombre, datos in {
+    tablas = {
         'etl_rechazos': rechazos,
         'etl_duplicados': duplicados,
         'etl_conciliacion': conciliacion,
         'etl_cambios_producto': cambios,
         'etl_fuentes': manifiesto,
-    }.items():
+    }
+    if cambios_clientes is not None:
+        tablas['etl_cambios_cliente'] = cambios_clientes
+    for nombre, datos in tablas.items():
         # Una fuente sin eventos conserva su tabla vacía, definida por el DDL.
         if not datos.empty:
             cargar_tablas(conexion, {nombre: datos}, (nombre,))

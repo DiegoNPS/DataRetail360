@@ -6,6 +6,7 @@ import pandas as pd
 from ..comun.contratos import CONTRATOS
 from ..comun.dominios import REGIONES
 from ..comun.utilidades import fecha_valida
+from ..comun.correos import correo_valido
 
 
 SEGMENTOS = ["Ocasional", "Frecuente", "Preferente"]
@@ -33,7 +34,8 @@ def limpiar_clientes(contexto):
     clientes = contexto.fuentes["clientes"].copy()
     clientes["id_cliente"] = clientes["id_cliente"].str.strip().str.upper()
     clientes["correo"] = clientes["correo"].str.strip().str.lower()
-    if clientes[CONTRATOS["clientes"].split()].eq("").any().any():
+    obligatorios = [c for c in CONTRATOS["clientes"].split() if c != "correo"]
+    if clientes[obligatorios].eq("").any().any():
         raise ValueError("clientes: campo obligatorio vacio")
     duplicadas = clientes.duplicated(keep="first")
     for indice in clientes[duplicadas].index:
@@ -46,6 +48,14 @@ def limpiar_clientes(contexto):
             )
         )
     clientes = clientes[~duplicadas].copy()
+    # Una identidad contradictoria sigue siendo fatal, incluso con correo inválido.
+    if clientes["id_cliente"].duplicated().any():
+        raise ValueError("Identidad cliente ambigua")
+    invalidos = ~clientes["correo"].map(correo_valido)
+    for indice, fila in clientes[invalidos].iterrows():
+        motivo = "correo_vacio" if not fila["correo"] else "correo_formato_invalido"
+        contexto.rechazar("clientes", indice, fila, motivo)
+    clientes = clientes[~invalidos].copy()
     if clientes["id_cliente"].duplicated().any() or clientes["correo"].duplicated().any():
         raise ValueError("Identidad cliente ambigua")
     if (

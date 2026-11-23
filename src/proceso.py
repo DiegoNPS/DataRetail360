@@ -14,6 +14,7 @@ from .silver.pipeline import preparar_tablas_silver
 from .silver.persistencia import guardar_silver, leer_silver
 from .gold.conciliacion import conciliar_hechos
 from .gold.pipeline import construir_dimensiones_gold, construir_hechos_gold
+from .gold.control_cambios import controlar_cambios_clientes
 from .carga.gold.conexion import crear_motor
 from .carga.gold.modelo import crear_modelo
 from .carga.gold.dimensiones import cargar_dimensiones
@@ -116,12 +117,24 @@ class SesionETL:
             self.guardar_resumen()
 
     def extraer(self):
-        """Bronze: lee los siete CSV y comprueba columnas, conteos y huellas."""
+        """Bronze: lee los CSV, valida columnas y audita cambios de versión."""
         with self.paso('EXTRACCION_BRONZE'):
             self.fuentes, self.manifiesto, metadatos = extraer_fuentes(self.entrada, self.id_ejecucion)
             self.resumen['semilla'] = metadatos['semilla']
             self.resumen['datos_sinteticos'] = metadatos.get('datos_sinteticos', True)
             self.resumen['fuentes'] = self.manifiesto.drop(columns=['id_ejecucion']).to_dict('records')
+            modificadas = self.manifiesto[
+                self.manifiesto['estado_fuente'].eq('MODIFICADA')
+            ]
+            self.resumen['fuentes_modificadas'] = modificadas[
+                ['archivo', 'detalle_cambio']
+            ].to_dict('records')
+            for fila in modificadas.itertuples():
+                self.logger.warning(
+                    'BRONZE_MODIFICADA | %s | %s | filas %s -> %s | sha256 %s -> %s',
+                    fila.archivo, fila.detalle_cambio, fila.filas_esperadas, fila.filas,
+                    fila.sha256_esperado, fila.sha256,
+                )
         return self.fuentes
 
     def limpiar_silver(self):
@@ -207,6 +220,25 @@ class SesionETL:
             self.dimensiones_gold, self.cambios_gold = construir_dimensiones_gold(
                 self.tablas_silver
             )
+            self.historial_cambios_cliente, self.cambios_cliente_actuales = (
+                controlar_cambios_clientes(
+                    self.ruta_base,
+                    self.dimensiones_gold['dim_cliente'],
+                    self.id_ejecucion,
+                    ahora(),
+                )
+            )
+            cambios = self.cambios_cliente_actuales
+            self.resumen['cambios_cliente_detectados'] = len(cambios)
+            self.resumen['cambios_cliente_por_tipo'] = (
+                cambios['tipo_evento'].value_counts().to_dict() if not cambios.empty else {}
+            )
+            for fila in cambios.itertuples():
+                self.logger.warning(
+                    'CAMBIO_CLIENTE | %s | %s | %s | %s -> %s | SCD %s',
+                    fila.id_cliente, fila.tipo_evento, fila.campo,
+                    fila.valor_anterior, fila.valor_nuevo, fila.tipo_scd,
+                )
         return self.dimensiones_gold
 
     def construir_hechos_gold(self):
@@ -251,7 +283,10 @@ class SesionETL:
         with self.paso('CARGA_HECHOS'):
             with self.motor.begin() as conexion:
                 cargar_hechos(conexion, self.tablas)
-                cargar_auditoria(conexion, self.resultado, self.manifiesto)
+                cargar_auditoria(
+                    conexion, self.resultado, self.manifiesto,
+                    self.historial_cambios_cliente,
+                )
 
     def validar(self):
         """Consulta SQLite: comprueba integridad, conteos, métricas y huellas."""
@@ -336,5 +371,17 @@ def ejecutar_completo(raiz=RAIZ, carpeta_entrada=None, simular_fallo=False, info
                        sesion.crear_modelo, sesion.cargar_dimensiones, sesion.cargar_hechos, sesion.validar):
             informar(f'Ejecutando: {metodo.__name__}')
             metodo()
+            if metodo.__name__ == 'extraer' and sesion.resumen['fuentes_modificadas']:
+                archivos = ', '.join(
+                    fila['archivo'] for fila in sesion.resumen['fuentes_modificadas']
+                )
+                informar(f'AVISO: Bronze cambió respecto del manifiesto: {archivos}')
+            if (metodo.__name__ == 'construir_dimensiones_gold'
+                    and sesion.resumen['cambios_cliente_detectados']):
+                informar(
+                    'AVISO: se detectaron '
+                    f"{sesion.resumen['cambios_cliente_detectados']} cambios de cliente; "
+                    'quedarán auditados en etl_cambios_cliente.'
+                )
         informar('Publicando la base validada...')
         return sesion.publicar(simular_fallo=simular_fallo)

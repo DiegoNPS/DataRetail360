@@ -19,8 +19,8 @@
     },
     {
       "archivo": "clientes.csv",
-      "filas": 10100,
-      "sha256": "fe78c1747345ceea1e123c5996244ac9c1680e4fe03cf9b59ec7a4f3985376be"
+      "filas": 10108,
+      "sha256": "5336ae4d19696db257b99141c0231a315e8f7970b99f28705d0d1fe9d03653e8"
     },
     {
       "archivo": "cambios_cliente.csv",
@@ -42,5 +42,7 @@
       "filas": 4618,
       "sha256": "5465cb62e6a635e077e9c6a1a6712c17346fdf0ec6b4f73a05ef3810f13bb7ef"
     }
-  ]
+  ],
+  "version_datos": "360-correos-v2",
+  "nota_correos": "Direcciones sintéticas; dominios variados; 8 casos inválidos sin ventas ni cambios asociados."
 }
