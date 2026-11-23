@@ -11,7 +11,7 @@
 | cambios_producto | 50 | 30 correcciones SCD 1 y 20 reclasificaciones SCD 3 |
 | ventas | 125.854 | 626 copias idénticas y errores deliberados |
 | devoluciones | 4.618 | 1 copia idéntica y errores deliberados |
-| stock_diario | 20.000 | grano único; 1.000 productos en 20 tiendas físicas |
+| stock_diario | 600.000 | 30 cierres diarios con grano único; 1.000 productos en 20 tiendas físicas |
 
 ## Riesgos y tratamiento
 
@@ -27,7 +27,9 @@
 - **Correos:** dominios Gmail, Hotmail, Outlook y example.com/example.org con subdominios. Silver normaliza, valida formato y rechaza 7 malformados y 1 vacío. No consulta DNS ni comprueba buzones. Véase `VALIDACION_CORREOS.md`.
 - **Stock:** no admite cantidades negativas, reservas superiores al stock físico,
   productos desconocidos, canales digitales ni duplicados en el grano
-  fecha-producto-tienda. Gold vuelve a comprobar las fórmulas de disponible y valor.
+  fecha-producto-tienda. Cada fecha debe contener 20.000 posiciones. Gold vuelve
+  a comprobar las fórmulas de disponible y valor, y el resumen de stock actual
+  usa sólo la fecha máxima para respetar la semiaditividad temporal.
 
 ## Controles automatizados
 

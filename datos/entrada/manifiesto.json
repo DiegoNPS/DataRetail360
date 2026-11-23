@@ -44,11 +44,11 @@
     },
     {
       "archivo": "stock_diario.csv",
-      "filas": 20000,
-      "sha256": "3fb65a0e29143605f8b0ecbc2fac00bf2b8e1504f2ae200d8f0085fc8ff9b206"
+      "filas": 600000,
+      "sha256": "2b90d771d4d657f89aff082ee999182e8a2d07cba770367545177150fd4bf9ab"
     }
   ],
-  "version_datos": "360-stock-v1",
+  "version_datos": "360-stock-v2",
   "nota_correos": "Direcciones sintéticas; dominios variados; 8 casos inválidos sin ventas ni cambios asociados.",
-  "nota_stock": "Snapshot sintético al 2025-12-31 para 1.000 productos en 20 tiendas físicas; 20.000 filas."
+  "nota_stock": "Snapshots diarios sintéticos desde 2025-12-02 hasta 2025-12-31 para 1.000 productos en 20 tiendas físicas; 600.000 filas."
 }

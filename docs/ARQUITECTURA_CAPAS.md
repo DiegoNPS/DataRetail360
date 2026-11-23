@@ -82,10 +82,11 @@ menos de un minuto y el volumen permite demostrar duplicados, referencias
 desconocidas, fechas inválidas, medidas negativas y descuentos fuera de rango.
 Reducirlo no mejora la ETL y haría perder la línea base.
 
-El snapshot inicial de stock aporta 20.000 filas: 1.000 productos por 20 tiendas
-físicas al cierre del 31-12-2025. Los canales digitales no se tratan como
-ubicaciones físicas de inventario. El esquema permite añadir fechas posteriores
-sin cambiar el modelo.
+El historial de stock aporta 600.000 filas: 30 cierres diarios, 1.000 productos
+por 20 tiendas físicas, desde el 02-12-2025 hasta el 31-12-2025. Los canales
+digitales no se tratan como ubicaciones físicas de inventario. Las métricas de
+stock actual filtran el último cierre; el historial completo queda disponible
+para analizar evolución, quiebres y reposiciones sin cambiar el modelo.
 
 Los nombres y correos son sintéticos. No se reemplazaron silenciosamente por
 datos personales reales. `datos/muestra_calidad/clientes_muestra.csv` incorpora

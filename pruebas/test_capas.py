@@ -58,7 +58,7 @@ class PruebasCapas(unittest.TestCase):
                     (SELECT COUNT(*) FROM hecho_stock_diario)
                 """
             ).fetchone()
-            self.assertEqual(conteos, (731, 1000, 12000, 22, 125217, 4612, 20000))
+            self.assertEqual(conteos, (731, 1000, 12000, 22, 125217, 4612, 600000))
             metricas = conexion.execute(
                 """
                 SELECT
@@ -107,13 +107,23 @@ class PruebasCapas(unittest.TestCase):
                 """
                 SELECT COUNT(*), COUNT(DISTINCT clave_producto),
                        COUNT(DISTINCT clave_sucursal_canal),
+                       COUNT(DISTINCT clave_fecha),
                        SUM(stock_disponible), SUM(valor_stock)
                 FROM hecho_stock_diario
                 """
             ).fetchone()
-            self.assertEqual(resumen[:3], (20000, 1000, 20))
-            self.assertGreater(resumen[3], 0)
+            self.assertEqual(resumen[:4], (600000, 1000, 20, 30))
             self.assertGreater(resumen[4], 0)
+            self.assertGreater(resumen[5], 0)
+            filas_por_dia = conexion.execute(
+                """
+                SELECT MIN(filas), MAX(filas) FROM (
+                    SELECT clave_fecha, COUNT(*) AS filas
+                    FROM hecho_stock_diario GROUP BY clave_fecha
+                )
+                """
+            ).fetchone()
+            self.assertEqual(filas_por_dia, (20000, 20000))
             incoherencias = conexion.execute(
                 """
                 SELECT COUNT(*) FROM hecho_stock_diario
@@ -129,6 +139,29 @@ class PruebasCapas(unittest.TestCase):
                 """
             ).fetchall()
             self.assertEqual(canales, [("Tienda",)])
+
+            resumen_ejecucion = json.loads(
+                (RAIZ / "resultados" / "resumen_ejecucion.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            ultimo_cierre = conexion.execute(
+                """
+                SELECT f.fecha, SUM(h.stock_disponible), SUM(h.valor_stock)
+                FROM hecho_stock_diario h JOIN dim_fecha f USING(clave_fecha)
+                WHERE f.fecha=(SELECT MAX(f2.fecha) FROM hecho_stock_diario h2
+                               JOIN dim_fecha f2 USING(clave_fecha))
+                GROUP BY f.fecha
+                """
+            ).fetchone()
+            self.assertEqual(
+                (
+                    resumen_ejecucion["metricas"]["fecha_stock"],
+                    resumen_ejecucion["metricas"]["unidades_stock_disponible"],
+                    resumen_ejecucion["metricas"]["valor_stock"],
+                ),
+                ultimo_cierre,
+            )
 
 
 if __name__ == "__main__":

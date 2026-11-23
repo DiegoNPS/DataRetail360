@@ -20,11 +20,16 @@ def consultar_resultados(conexion, tablas):
     ''')).scalar())
     metricas['ticket_promedio_antes_devoluciones'] = metricas['ventas_tras_descuento'] / metricas['comprobantes']
     stock = dict(conexion.execute(text('''
-        SELECT MAX(f.fecha) AS fecha_stock,
+        SELECT f.fecha AS fecha_stock,
                SUM(s.stock_disponible) AS unidades_stock_disponible,
                SUM(s.valor_stock) AS valor_stock,
                SUM(CASE WHEN s.stock_disponible=0 THEN 1 ELSE 0 END) AS posiciones_agotadas
         FROM hecho_stock_diario s JOIN dim_fecha f USING(clave_fecha)
+        WHERE f.fecha=(
+            SELECT MAX(f2.fecha) FROM hecho_stock_diario s2
+            JOIN dim_fecha f2 USING(clave_fecha)
+        )
+        GROUP BY f.fecha
     ''')).mappings().one())
     metricas.update(stock)
     huellas = {}

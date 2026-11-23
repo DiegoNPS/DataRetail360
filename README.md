@@ -71,18 +71,19 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 ```
 
 La carga oficial validada produce 125.217 líneas de venta, 4.612 devoluciones,
-20.000 snapshots de stock y venta neta sintética de $86.307.738.295 CLP. Son cifras de control del
+600.000 snapshots de stock y venta neta sintética de $86.307.738.295 CLP. Son cifras de control del
 conjunto incluido, no constantes usadas por el ETL.
 
 ## Hecho de stock de tiendas
 
 `hecho_stock_diario` es un snapshot periódico con grano fecha-producto-tienda.
-La fuente inicial contiene el cierre del 31-12-2025 para 1.000 productos en 20
-tiendas físicas. Registra stock físico, reservado, disponible, en tránsito,
+La fuente contiene 30 cierres diarios, desde el 02-12-2025 hasta el 31-12-2025,
+para 1.000 productos en 20 tiendas físicas. Registra stock físico, reservado, disponible, en tránsito,
 costo unitario y valor del stock. Estas medidas pueden sumarse entre productos
 o tiendas para una misma fecha, pero no entre fechas diferentes. La vista
 `vista_stock_tiendas` agrega los atributos descriptivos y clasifica cada posición
-como `AGOTADO`, `CRITICO`, `BAJO` o `DISPONIBLE`.
+como `AGOTADO`, `CRITICO`, `BAJO` o `DISPONIBLE`. Las métricas operativas del
+resumen usan únicamente el último cierre para no sumar inventario entre días.
 
 ## Nueva versión de correos sintéticos
 

@@ -17,7 +17,7 @@ Verificacion despues de la carga, desde PowerShell en DataRetail360:
 .\.venv\Scripts\python.exe -m unittest discover -s pruebas -v
 
 Resultados de control: 125.217 lineas de venta, 4.612 devoluciones,
-20.000 posiciones de stock y venta neta sintetica de 86.307.738.295 CLP.
+600.000 snapshots diarios de stock y venta neta sintetica de 86.307.738.295 CLP.
 
 Incluye codigo, SQL, pruebas, notebooks, dependencias, instrucciones tecnicas
 y los ocho CSV de entrada con su manifiesto, necesarios para reproducir la ETL.
