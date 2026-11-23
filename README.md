@@ -14,6 +14,7 @@ dimensional SQLite Gold. La ETL no regenera ni modifica los CSV oficiales.
 
 - **Carga completa:** ejecutar `EJECUTAR_COMPLETO.cmd`.
 - **Demostración por etapas:** ejecutar `ABRIR_DEMOSTRACION.cmd`, seleccionar el kernel **Python - DataRetail360** y ejecutar las celdas del notebook en orden con Shift+Enter.
+- **Dashboard ejecutivo:** después de una carga completa, ejecutar `EJECUTAR_DASHBOARD.cmd`.
 - **Reiniciar la prueba:** cerrar la sesión del notebook y ejecutar `LIMPIAR_RESULTADOS.cmd`. Conserva entradas y código. No es necesario limpiar para repetir una carga.
 
 ## Orden real de ejecución
@@ -61,6 +62,8 @@ La ejecución reconstruye la base; no es incremental. Las salidas anteriores se 
 | `notebooks/demostracion_etl.ipynb` | Ejecución manual de las etapas |
 | `notebooks/analisis_calidad_datos.ipynb` | Perfil reproducible de las fuentes |
 | `pruebas/` | Controles de capas, equivalencia Gold, recuperación y cambios Bronze/cliente |
+| `dashboard/` | Dashboard Streamlit, fichas KPI y consulta de lenguaje natural segura |
+| `material_clases/` | Copia sin modificaciones de las referencias entregadas para EP5 |
 | `requirements.txt` | Dependencias Python |
 | Archivos `.cmd` | Preparación y accesos de ejecución |
 
@@ -88,3 +91,15 @@ resumen usan únicamente el último cierre para no sumar inventario entre días.
 ## Nueva versión de correos sintéticos
 
 Las fuentes de esta versión tienen correos de dominios variados y ocho clientes adicionales con correos inválidos para demostrar rechazos. Se actualizó el manifiesto de entrada de forma explícita. Véase `docs/VALIDACION_CORREOS.md`. Las ventas y sus importes se conservan. Los notebooks se entregan sin salidas antiguas: ejecutarlos para generar la evidencia actual.
+
+## Dashboard EP5
+
+El panel combina ventas netas e inventario, incluye cinco KPI documentados,
+filtros de fecha, región, canal y categoría, drill-down de sucursal a producto y
+un relato situación-complicación-decisión. Usa una paleta accesible y acompaña
+los estados con texto. El módulo de consulta ofrece cuatro preguntas curadas con
+resultado verificable y un modo generativo opcional mediante `OPENAI_API_KEY`.
+Toda consulta propuesta por IA se limita a vistas aprobadas y se ejecuta con una
+conexión SQLite de solo lectura; aun así, su interpretación debe revisarse antes
+de tomar decisiones. El diseño y las instrucciones de ejecución están en
+`dashboard/README.md` y el wireframe en `docs/WIREFRAME_EP5.svg`.

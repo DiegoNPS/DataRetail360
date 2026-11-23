@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page{ size:900px 1320px; margin:0; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Calibri,'Segoe UI',Arial,sans-serif;width:900px;background:#fff;color:#33414D;}
+  .poster{width:900px;min-height:1320px;padding:0 0 36px;}
+  header{background:#0F2C4C;color:#fff;padding:34px 44px 30px;border-bottom:8px solid #C8860D;}
+  header .kick{color:#F2B544;font-weight:bold;letter-spacing:2px;font-size:13px;text-transform:uppercase;}
+  header h1{font-family:Georgia,serif;font-size:38px;margin:8px 0 6px;line-height:1.1;}
+  header p{color:#C9D5E2;font-size:15px;}
+  .body{padding:30px 44px 0;}
+  h2{font-family:Georgia,serif;color:#0F2C4C;font-size:23px;margin:26px 0 12px;display:flex;align-items:center;gap:10px;}
+  h2 .dot{width:14px;height:14px;border-radius:50%;background:#0E8C84;display:inline-block;}
+  p.lead{font-size:15px;line-height:1.55;color:#33414D;}
+  .stat{display:flex;gap:18px;margin:14px 0 4px;}
+  .stat .card{flex:1;background:#E6F4F2;border-left:5px solid #0E8C84;border-radius:8px;padding:14px 16px;}
+  .stat .card b{font-family:Georgia,serif;color:#0E8C84;font-size:30px;display:block;}
+  .stat .card span{font-size:13px;color:#33414D;}
+  .row{display:flex;gap:18px;margin-top:8px;}
+  .col{flex:1;}
+  .panel{border:1px solid #DCE3EA;border-radius:10px;padding:16px 18px;height:100%;}
+  .panel.bad{background:#fbeceb;border-color:#e7b7b3;}
+  .panel.good{background:#e7f5f3;border-color:#9fd6cf;}
+  .panel h3{font-size:15px;margin-bottom:10px;color:#0F2C4C;}
+  .sw{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px;}
+  .chip{width:46px;height:24px;border-radius:5px;flex:none;border:1px solid rgba(0,0,0,.08);}
+  .pair{display:flex;gap:4px;flex:none;}
+  .pair .chip{width:34px;}
+  .rules{background:#0F2C4C;color:#fff;border-radius:12px;padding:20px 24px;margin-top:8px;}
+  .rules h3{color:#F2B544;font-size:16px;margin-bottom:10px;}
+  .rules ul{list-style:none;}
+  .rules li{padding:7px 0 7px 28px;position:relative;font-size:14px;line-height:1.4;border-bottom:1px solid #1F4B73;}
+  .rules li:last-child{border-bottom:none;}
+  .rules li::before{content:'✓';position:absolute;left:0;color:#12A89E;font-weight:bold;}
+  .palette{display:flex;gap:0;border-radius:8px;overflow:hidden;margin:10px 0 2px;height:40px;}
+  .palette div{flex:1;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;}
+  footer{text-align:center;color:#6B7886;font-size:12px;margin-top:26px;padding-top:14px;border-top:1px solid #DCE3EA;}
+  .note{font-size:12px;color:#6B7886;font-style:italic;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="poster">
+  <header>
+    <div class="kick">IDY1102 · Experiencia 3 · Recurso 3.1.4 · Infografía</div>
+    <h1>Color Accesible en Dashboards</h1>
+    <p>Diseña visualizaciones que TODAS las personas puedan leer — incluidas las que perciben distinto el color.</p>
+  </header>
+
+  <div class="body">
+    <h2><span class="dot"></span>¿Por qué importa?</h2>
+    <p class="lead">El daltonismo (deficiencia en la visión del color) afecta a una parte importante de la población. Si tu dashboard distingue cosas solo por color, esas personas no podrán interpretarlo.</p>
+    <div class="stat">
+      <div class="card"><b>~8%</b><span>de los hombres tiene algún tipo de daltonismo</span></div>
+      <div class="card"><b>~0,5%</b><span>de las mujeres lo presenta</span></div>
+      <div class="card"><b>Rojo-verde</b><span>es el tipo más frecuente (deuteranopia / protanopia)</span></div>
+    </div>
+
+    <h2><span class="dot"></span>Combinaciones: evita vs prefiere</h2>
+    <div class="row">
+      <div class="col"><div class="panel bad">
+        <h3>✕ Evita (riesgo)</h3>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#D62728"></span><span class="chip" style="background:#2CA02C"></span></span> Rojo + verde</div>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#2CA02C"></span><span class="chip" style="background:#8C564B"></span></span> Verde + marrón</div>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#1F77B4"></span><span class="chip" style="background:#9467BD"></span></span> Azul + morado</div>
+        <p class="note">Se confunden entre sí para muchas personas.</p>
+      </div></div>
+      <div class="col"><div class="panel good">
+        <h3>✓ Prefiere (seguro)</h3>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#0E8C84"></span><span class="chip" style="background:#C8860D"></span></span> Teal + dorado</div>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#1F77B4"></span><span class="chip" style="background:#FF7F0E"></span></span> Azul + naranja</div>
+        <div class="sw"><span class="pair"><span class="chip" style="background:#0F2C4C"></span><span class="chip" style="background:#9AA7B2"></span></span> Navy + gris</div>
+        <p class="note">Distinguibles también en escala de grises.</p>
+      </div></div>
+    </div>
+
+    <h2><span class="dot"></span>Paleta segura sugerida</h2>
+    <div class="palette">
+      <div style="background:#0F2C4C">Navy</div>
+      <div style="background:#0E8C84">Teal</div>
+      <div style="background:#1F77B4">Azul</div>
+      <div style="background:#FF7F0E">Naranja</div>
+      <div style="background:#C8860D">Dorado</div>
+      <div style="background:#9AA7B2;color:#0F2C4C">Gris</div>
+    </div>
+    <p class="note">Limita tu dashboard a 4–6 colores con significado; reserva un color de acento para lo más importante.</p>
+
+    <h2><span class="dot"></span>5 reglas de oro</h2>
+    <div class="rules">
+      <ul>
+        <li><b>No uses solo el color</b> para distinguir: añade etiquetas, íconos, formas o patrones.</li>
+        <li><b>Asegura contraste</b> suficiente entre texto y fondo (legible y accesible).</li>
+        <li><b>Color con propósito:</b> destaca lo clave; el resto en tonos neutros.</li>
+        <li><b>Estados con texto:</b> no solo verde/rojo; agrega "Meta" / "Alerta" o ▲▼.</li>
+        <li><b>Prueba tu dashboard</b> en escala de grises o con un simulador de daltonismo.</li>
+      </ul>
+    </div>
+
+    <footer>IDY1102 · Estructuras y Visualización de Datos · Escuela de Informática y Telecomunicaciones · Duoc UC · Caso DataRetail 360</footer>
+  </div>
+</div>
+</body>
+</html>
